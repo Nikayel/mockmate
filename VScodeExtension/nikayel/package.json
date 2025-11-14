@@ -1,0 +1,232 @@
+{
+  "name": "mockmate",
+  "displayName": "MockMate",
+  "description": "Mock Technical interview",
+  "version": "0.0.1",
+  "publisher": "nikayel",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:mockmate.startSimulation",
+    "onCommand:mockmate.endSimulation",
+    "onCommand:mockmate.signIn",
+    "onCommand:mockmate.signOut",
+    "onView:mockmate.codingPartnerView",
+    "onUri",
+    "onCommand:mockmate.openInterviewer",
+    "onCommand:mockmate.openCodingPartner",
+    "onCommand:mockmate.showPricing",
+    "onCommand:mockmate.configureContext",
+    "onCommand:mockmate.submitSolution",
+    "onCommand:nikayel.helloWorld"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "mockmatePanel",
+          "title": "MockMate",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "mockmatePanel": [
+        {
+          "id": "mockmate.codingPartnerView",
+          "name": "MockMate: Coding Partner"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "nikayel.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "mockmate.startSimulation",
+        "title": "MockMate: Start Simulation"
+      },
+      {
+        "command": "mockmate.endSimulation",
+        "title": "MockMate: End Simulation"
+      },
+      {
+        "command": "mockmate.signIn",
+        "title": "MockMate: Sign In"
+      },
+      {
+        "command": "mockmate.signOut",
+        "title": "MockMate: Sign Out"
+      },
+      {
+        "command": "mockmate.openInterviewer",
+        "title": "MockMate: Open Interviewer"
+      },
+      {
+        "command": "mockmate.openCodingPartner",
+        "title": "MockMate: Open Coding Partner"
+      },
+      {
+        "command": "mockmate.showPricing",
+        "title": "MockMate: Pricing & Limits"
+      },
+      {
+        "command": "mockmate.configureContext",
+        "title": "MockMate: Configure Workspace Context"
+      },
+      {
+        "command": "mockmate.submitSolution",
+        "title": "MockMate: Submit Solution"
+      }
+    ],
+    "configuration": {
+      "title": "MockMate",
+      "properties": {
+        "mockmate.supabaseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Supabase project URL (used for Edge Functions)."
+        },
+        "mockmate.supabaseAnonKey": {
+          "type": "string",
+          "default": "",
+          "description": "Supabase anon public key (used to call Edge Functions)."
+        },
+        "mockmate.websiteUrl": {
+          "type": "string",
+          "default": "https://mockmate.dev",
+          "description": "Website base URL used for OAuth sign-in flow."
+        },
+        "mockmate.requireSignIn": {
+          "type": "boolean",
+          "default": true,
+          "description": "Require users to be signed in to start simulations."
+        },
+        "mockmate.defaultProvider": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "openai",
+            "gemini"
+          ],
+          "default": "auto",
+          "description": "Default model provider selection. Use 'auto' to enable smart routing."
+        },
+        "mockmate.enableStreaming": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable streaming responses in chat panels."
+        },
+        "mockmate.maxResponseTokens": {
+          "type": "number",
+          "default": 1024,
+          "description": "Max response tokens requested from the model."
+        },
+        "mockmate.modelPolicy": {
+          "type": "object",
+          "default": {
+            "free": {
+              "interviewer": {
+                "provider": "openai",
+                "model": "gpt-3.5-turbo"
+              },
+              "codingPartner": {
+                "provider": "openai",
+                "model": "gpt-3.5-turbo"
+              }
+            },
+            "pro": {
+              "interviewer": {
+                "provider": "openai",
+                "model": "gpt-4o"
+              },
+              "codingPartner": {
+                "provider": "openai",
+                "model": "gpt-4o"
+              }
+            }
+          },
+          "description": "Routing policy by subscription tier and persona. Keys: free/pro; values include interviewer and codingPartner with provider/model."
+        },
+        "mockmate.debugLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable verbose logging for troubleshooting."
+        },
+        "mockmate.devDirectLLM": {
+          "type": "boolean",
+          "default": false,
+          "description": "Development only: call vendor APIs directly instead of chat-proxy. Do not enable in production."
+        },
+        "mockmate.oauthRedirectUri": {
+          "type": "string",
+          "default": "vscode://nikayel.mockmate/auth-callback",
+          "description": "Redirect URI for GitHub OAuth via Supabase. Must match Supabase Auth redirect settings."
+        },
+        "mockmate.useWizard": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use a guided start wizard instead of input boxes to configure the simulation."
+        },
+        "mockmate.freeMonthlyLimit": {
+          "type": "number",
+          "default": 3,
+          "description": "Free tier monthly simulation limit (used by server; client for display only)."
+        },
+        "mockmate.proMonthlyLimit": {
+          "type": "number",
+          "default": 30,
+          "description": "Pro tier monthly simulation limit (used by server; client for display only)."
+        },
+        "mockmate.workspaceContextRoots": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Workspace folders to include as context (optional)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/node-fetch": "^2.6.13",
+    "@types/vscode": "^1.102.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.25.8",
+    "eslint": "^9.32.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "node-fetch": "^2.7.0",
+    "openai": "^5.12.0",
+    "zod": "^3.23.8"
+  }
+}
