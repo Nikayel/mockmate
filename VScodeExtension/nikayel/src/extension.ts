@@ -7,6 +7,7 @@ import { showPricing } from './ui/pricing';
 import { showContextPicker } from './ui/workspaceContext';
 import { showSummary } from './ui/summary';
 import { startSimulationFlow } from './flows/startSimulation';
+import { startScenarioBasedSimulation } from './flows/scenarioBasedSimulation';
 import { signIn, signOut, initializeSession } from './supabase/session.js';
 import { finalizeSession } from './supabase/sessions.js';
 import { stopInactivityMonitor } from './utils/activity.js';
@@ -48,7 +49,37 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('mockmate.startSimulation', async () => {
 			try {
 				await ensurePanels(context);
-				await startSimulationFlow(context, output);
+
+				// Ask user which simulation mode they want
+				const mode = await vscode.window.showQuickPick(
+					[
+						{
+							label: '🎯 Scenario-Based Interview (Recommended)',
+							description: 'Choose from preloaded DSA & bug fix scenarios',
+							value: 'scenario'
+						},
+						{
+							label: '🔧 Legacy Mode',
+							description: 'Original flow with auto-generated tasks',
+							value: 'legacy'
+						}
+					],
+					{
+						title: 'Select Interview Mode',
+						placeHolder: 'Choose how you want to start your interview',
+						ignoreFocusOut: true
+					}
+				);
+
+				if (!mode) {
+					return;
+				}
+
+				if (mode.value === 'scenario') {
+					await startScenarioBasedSimulation(context, output);
+				} else {
+					await startSimulationFlow(context, output);
+				}
 			} catch (error) {
 				const message = error instanceof Error ? error.message : String(error);
 				vscode.window.showErrorMessage(`Failed to start simulation: ${message}`);
