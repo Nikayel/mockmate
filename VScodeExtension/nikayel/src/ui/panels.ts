@@ -9,6 +9,8 @@ let codingPartnerMessageHandler: ((text: string) => void) | undefined;
 export async function ensurePanels(context: vscode.ExtensionContext): Promise<void> {
     await showInterviewerPanel(context);
     await showCodingPartnerPanel(context);
+    // Open the bottom panel to show coding partner
+    await vscode.commands.executeCommand('workbench.action.togglePanel');
 }
 
 export async function showInterviewerPanel(context: vscode.ExtensionContext): Promise<void> {
@@ -19,7 +21,7 @@ export async function showInterviewerPanel(context: vscode.ExtensionContext): Pr
     interviewerPanel = vscode.window.createWebviewPanel(
         'mockmateInterviewer',
         'MockMate: Interviewer',
-        { viewColumn: vscode.ViewColumn.Two, preserveFocus: true },
+        { viewColumn: vscode.ViewColumn.One, preserveFocus: true },
         { enableScripts: true }
     );
     interviewerPanel.onDidDispose(() => { interviewerPanel = undefined; }, undefined, context.subscriptions);
@@ -60,6 +62,19 @@ function getChatHtml(title: string): string {
     .input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--vscode-editorWidget-border); }
     textarea { flex: 1; resize: vertical; min-height: 48px; }
     button { padding: 6px 12px; }
+    .msg { margin-bottom: 12px; padding: 8px; border-radius: 4px; }
+    .msg.user { background: var(--vscode-input-background); }
+    .msg.assistant { background: var(--vscode-editor-inactiveSelectionBackground); }
+    .msg.toast {
+        background: var(--vscode-editorWarning-background);
+        border-left: 3px solid var(--vscode-editorWarning-foreground);
+        animation: slideIn 0.3s ease-out;
+        font-style: italic;
+    }
+    @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
     `;
     const script = `
     const vscode = acquireVsCodeApi();
@@ -78,6 +93,8 @@ function getChatHtml(title: string): string {
         const { type, text } = event.data;
         if (type === 'assistantMessage') {
             addMessage('assistant', text);
+        } else if (type === 'toastMessage') {
+            addMessage('toast', text);
         }
     });
     function addMessage(role, text) {
@@ -107,6 +124,10 @@ function getChatHtml(title: string): string {
 
 export function postToInterviewer(text: string): void {
     interviewerPanel?.webview.postMessage({ type: 'assistantMessage', text });
+}
+
+export function postToastToInterviewer(text: string): void {
+    interviewerPanel?.webview.postMessage({ type: 'toastMessage', text });
 }
 
 export function postToCodingPartner(text: string): void {
