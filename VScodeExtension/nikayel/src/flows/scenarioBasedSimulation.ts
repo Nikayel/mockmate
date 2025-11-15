@@ -21,6 +21,7 @@ import { routeModel } from '../models/router';
 import {
   postToInterviewer,
   postToCodingPartner,
+  postToastToInterviewer,
   setInterviewerMessageHandler,
   setCodingPartnerMessageHandler,
 } from '../ui/panels';
@@ -34,6 +35,10 @@ import {
   startInactivityMonitor,
   stopInactivityMonitor,
 } from '../utils/activity';
+import {
+  startInterviewerInterruptions,
+  stopInterviewerInterruptions,
+} from '../utils/interviewerInterruptions';
 import { readToken } from '../supabase/session';
 
 export async function startScenarioBasedSimulation(
@@ -239,6 +244,9 @@ export async function startScenarioBasedSimulation(
 
   // Start inactivity monitoring
   startInactivityMonitor();
+
+  // Start interviewer interruptions (real-world scenarios and stuck detection)
+  startInterviewerInterruptions();
 
   // Step 7: Wire message handlers with context awareness
   setInterviewerMessageHandler(async (userMessage: string) => {
